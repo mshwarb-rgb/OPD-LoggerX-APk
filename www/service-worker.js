@@ -1,5 +1,5 @@
-// Service Worker – OPD LoggerX v16 (clean, cache-busting)
-const CACHE = 'opd-offline-v16';
+// Service Worker – OPD Logger v16 (clean + cache-busting)
+const CACHE = 'opd-offline-v16';   // <-- bump this when app.js changes
 const FILES = [
   './',
   './index.html',
@@ -21,18 +21,24 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)));
+    await Promise.all(
+      keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+    );
     self.clients.claim();
   })());
 });
 
-// Cache-first for app shell, network-first for others
+// Cache-first for app shell; network-first fallback for other requests
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   const isShell = FILES.some(p => url.pathname.endsWith(p.replace('./','/')));
   if (isShell) {
-    event.respondWith(caches.match(event.request).then(r => r || fetch(event.request)));
+    event.respondWith(
+      caches.match(event.request).then(r => r || fetch(event.request))
+    );
   } else {
-    event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
   }
 });
