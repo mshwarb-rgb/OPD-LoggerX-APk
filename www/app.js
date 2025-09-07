@@ -502,7 +502,7 @@ async function downloadXLS(list){
     v.disposition || ""
   ]);
 
-  const esc = s => String(s).replace(/[<&>]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;"}[c]));
+  const esc = s => String(s).replace(/[<&>]/g, c => ({"<":"&lt;","&":"&amp;",">":"&gt;"}[c]));
   let table = '<table border="1"><tr>' + header.map(h=>`<th>${esc(h)}</th>`).join('') + '</tr>';
   rows.forEach(r => { table += '<tr>' + r.map(x=>`<td>${esc(x)}</td>`).join('') + '</tr>'; });
   table += '</table>';
@@ -579,3 +579,7 @@ function tinyToast(msg, ok){
   err.textContent = msg;
   setTimeout(()=>{ err.textContent=""; err.style.color="#d93025"; }, 1400);
 }
+
+/* ===== Global error hooks (surface silent errors) ===== */
+window.addEventListener("error", (ev) => { try { tinyToast("Error: " + (ev.error?.message || ev.message), false); } catch(_){} });
+window.addEventListener("unhandledrejection", (ev) => { try { tinyToast("Error: " + (ev.reason?.message || ev.reason), false); } catch(_){} });
